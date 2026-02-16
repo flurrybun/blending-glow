@@ -5,6 +5,22 @@
 
 using namespace geode::prelude;
 
+bool s_enabled;
+bool s_brighterGlow;
+bool s_enableRobotSpider;
+
+$execute {
+    s_enabled = Mod::get()->getSettingValue<bool>("blending-glow");
+    s_brighterGlow = Mod::get()->getSettingValue<bool>("brighter-glow");
+    s_enableRobotSpider = Mod::get()->getSettingValue<bool>("enable-robot-spider");
+
+    listenForAllSettingChanges([](std::string_view key, std::shared_ptr<SettingV3> setting) {
+        s_enabled = Mod::get()->getSettingValue<bool>("blending-glow");
+        s_brighterGlow = Mod::get()->getSettingValue<bool>("brighter-glow");
+        s_enableRobotSpider = Mod::get()->getSettingValue<bool>("enable-robot-spider");
+    });
+}
+
 class $modify(ModPlayerObject, PlayerObject) {
     struct Fields {
         CCSprite* m_robotSpiderGlow = nullptr;
@@ -13,7 +29,7 @@ class $modify(ModPlayerObject, PlayerObject) {
     $override
     void updatePlayerArt() {
         PlayerObject::updatePlayerArt();
-        if (!m_hasGlow || !Mod::get()->getSettingValue<bool>("blending-glow")) return;
+        if (!m_hasGlow || !s_enabled) return;
 
         ccBlendFunc blendFunc = {GL_ONE, GL_ONE_MINUS_CONSTANT_ALPHA};
 
@@ -28,7 +44,7 @@ class $modify(ModPlayerObject, PlayerObject) {
 
     $override
     void updateGlowColor() {
-        if (Mod::get()->getSettingValue<bool>("brighter-glow")) {
+        if (s_brighterGlow) {
             auto gm = GameManager::sharedState();
             auto glowColor = gm->colorForIdx(gm->getPlayerGlowColor());
 
@@ -43,7 +59,7 @@ class $modify(ModPlayerObject, PlayerObject) {
     }
 
     void updateRobotGlowScheduler() {
-        if (!Mod::get()->getSettingValue<bool>("enable-robot-spider")) return;
+        if (!s_enableRobotSpider) return;
 
         auto selector = schedule_selector(ModPlayerObject::updateRobotGlow);
 
@@ -107,7 +123,7 @@ class $modify(ModEditorUI, EditorUI) {
     $override
     void onPlaytest(CCObject* sender) {
         EditorUI::onPlaytest(sender);
-        if (!Mod::get()->getSettingValue<bool>("enable-robot-spider")) return;
+        if (!s_enableRobotSpider) return;
 
         auto player1 = LevelEditorLayer::get()->m_player1;
         if (player1 && (player1->m_isRobot || player1->m_isSpider)) player1->resumeSchedulerAndActions();

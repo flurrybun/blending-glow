@@ -1,10 +1,14 @@
+## v1.2.2
+
+- Updated to GD 2.2081 and Geode v5
+
 ## v1.2.1
 
 - Added iOS support
 
 ## v1.2.0
 
-- Added blending glow to **robots and spiders**!
+- Added blending glow to **robots and spiders**
 - Updated to GD 2.2074 and Geode v4
 
 ## v1.1.4
